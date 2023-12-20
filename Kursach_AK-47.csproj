@@ -12,6 +12,7 @@
         <FileAlignment>512</FileAlignment>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <Deterministic>true</Deterministic>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,6 +49,7 @@
     <ItemGroup>
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="Scripts\DataTokens.cs" />
+        <Compile Include="Scripts\LexicalAnalyzer.cs" />
         <Compile Include="Scripts\Program.cs" />
         <Compile Include="WinForms\Form1.cs">
           <SubType>Form</SubType>
@@ -70,6 +72,9 @@
             <AutoGen>True</AutoGen>
             <DependentUpon>Resources.resx</DependentUpon>
         </Compile>
+        <EmbeddedResource Include="WinForms\Form1.resx">
+          <DependentUpon>Form1.cs</DependentUpon>
+        </EmbeddedResource>
         <None Include="Properties\Settings.settings">
             <Generator>SettingsSingleFileGenerator</Generator>
             <LastGenOutput>Settings.Designer.cs</LastGenOutput>
