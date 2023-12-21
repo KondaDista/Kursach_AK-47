@@ -8,14 +8,11 @@ namespace Kursach_AK_47;
 public class LexicalAnalyzer
 {
     private StreamReader _streamReader;
-    private bool _endProgramm = false;
-    private bool _errorProgramm = false;
+    private bool _endAnalysis = false;
+    private bool _errorAnalysis = false;
     private string _errorMessage;
 
-    private Dictionary<int, string> _tableNumbers = new();
-    private Dictionary<int, string> _tableIdentification = new();
-
-    private List<string> _resultAnalyze = new();
+    private List<string> _resultLexicalAnalyze = new();
 
     public LexicalAnalyzer(string path)
     {
@@ -51,7 +48,7 @@ public class LexicalAnalyzer
                         _verificationSymbol(word);
                     }
 
-                    if (_endProgramm || _errorProgramm)
+                    if (_endAnalysis || _errorAnalysis)
                         break;
                 }
             }
@@ -81,31 +78,31 @@ public class LexicalAnalyzer
         if (DataTokens.ContainsTableServiceWords(word)) // Поиск в таблице служебных слов
         {
             int index = DataTokens.GetIndexTableServiceWords(word);
-            _resultAnalyze.Add($"(0,{index})");
+            _resultLexicalAnalyze.Add($"[0,{index}]]");
             if (index == 8)
-                _endProgramm = true;
+                _endAnalysis = true;
         }
         else
         {
             if (DataTokens.ContainsTableLimiters(word)) // Поиск в таблице разделителей
             {
-                _resultAnalyze.Add($"(1,{DataTokens.GetIndexTableLimiters(word)})");
+                _resultLexicalAnalyze.Add($"[1,{DataTokens.GetIndexTableLimiters(word)}]");
             }
             else
             {
                 // Поиск в таблице идентификаторов
                 int index;
-                if (!_tableIdentification.ContainsValue(word))
+                if (!DataTokens.ContainsTableIdentification(word))
                 {
-                    index = _tableIdentification.Count;
-                    _tableIdentification.Add(index, word);
+                    index = DataTokens.GetCountTableIdentification();
+                    DataTokens.AddedValueInTableIdentification(word);
                 }
                 else
                 {
-                    index = _tableIdentification.FirstOrDefault(dict => dict.Value == word).Key;
+                    index = DataTokens.GetIndexTableIdentification(word);
                 }
 
-                _resultAnalyze.Add($"(2,{index})");
+                _resultLexicalAnalyze.Add($"[2,{index}]");
             }
         }
     }
@@ -169,20 +166,20 @@ public class LexicalAnalyzer
         }
         else
         {
-            _errorProgramm = true;
+            _errorAnalysis = true;
             _errorMessage = $"Ошибка: число \"{word}\" не поддерживается данным языком";
             return;
         }
 
-        if (!_tableNumbers.ContainsValue(result))
+        if (!DataTokens.ContainsTableNumbers(result))
         {
-            index = _tableNumbers.Count;
-            _tableNumbers.Add(index, result);
+            index = DataTokens.GetCountTableNumbers();
+            DataTokens.AddedValueInTableNumbers(result);
         }
         else
-            index = _tableNumbers.FirstOrDefault(dict => dict.Value == result).Key;
+            index = DataTokens.GetIndexTableNumbers(result);
 
-        _resultAnalyze.Add($"(3,{index})");
+        _resultLexicalAnalyze.Add($"[3,{index}]");
     }
 
     private bool IsBinary(string word)
@@ -338,7 +335,7 @@ public class LexicalAnalyzer
             case '#':
                 if (nextCH != ' ')
                 {
-                    _errorProgramm = true;
+                    _errorAnalysis = true;
                     _errorMessage =
                         "Ошибка: проблема с определением типа данных. После символа \"#\" ожидается пробел ";
                 }
@@ -347,7 +344,7 @@ public class LexicalAnalyzer
             case '@':
                 if (nextCH != ' ')
                 {
-                    _errorProgramm = true;
+                    _errorAnalysis = true;
                     _errorMessage =
                         "Ошибка: проблема с определением типа данных. После символа \"@\" ожидается пробел ";
                 }
@@ -358,7 +355,7 @@ public class LexicalAnalyzer
                     word += (char)_streamReader.Read();
                 else if (nextCH != ' ')
                 {
-                    _errorProgramm = true;
+                    _errorAnalysis = true;
                     _errorMessage =
                         "Ошибка: проблема с определением типа данных. После символа \"&\" ожидается пробел ";
                 }
@@ -369,7 +366,7 @@ public class LexicalAnalyzer
                     word += (char)_streamReader.Read();
                 else
                 {
-                    _errorProgramm = true;
+                    _errorAnalysis = true;
                     _errorMessage =
                         "Ошибка: проблема с переносом строки, после переноса каретки \\r отстутствует символ переноса строки \\n";
                 }
@@ -380,7 +377,7 @@ public class LexicalAnalyzer
                     word += (char)_streamReader.Read();
                 else
                 {
-                    _errorProgramm = true;
+                    _errorAnalysis = true;
                     _errorMessage = "Ошибка: операции \"|\" нет в списке разделителей, возможно вы имели \"||\"";
                 }
 
@@ -419,7 +416,7 @@ public class LexicalAnalyzer
                         word = "comm";
                     else
                     {
-                        _errorProgramm = true;
+                        _errorAnalysis = true;
                         _errorMessage = "Ошибка: неверно написан комментарий";
                     }
                 }
@@ -431,11 +428,11 @@ public class LexicalAnalyzer
     {
         if (DataTokens.ContainsTableLimiters(word))
         {
-            _resultAnalyze.Add($"[1,{DataTokens.GetIndexTableLimiters(word)}]");
+            _resultLexicalAnalyze.Add($"[1,{DataTokens.GetIndexTableLimiters(word)}]");
         }
         else
         {
-            _errorProgramm = true;
+            _errorAnalysis = true;
             _errorMessage = $"Ошибка: символ [{word}] не предусмотрен данным языком";
         }
     }

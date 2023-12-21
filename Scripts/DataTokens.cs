@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Kursach_AK_47
 {
@@ -67,8 +69,8 @@ namespace Kursach_AK_47
             '(', ')', '.', ':', ';', ',', '{',
             '}', '#', '@', '&', '\r', '\n', ' '
         };
-
-        private static Dictionary<string, int> _tableServiceWords = new()
+        
+        private static Dictionary<string, int> _tableServiceWords = new() //0
         {
             { "true", 1 },
             { "false", 2 },
@@ -86,11 +88,13 @@ namespace Kursach_AK_47
             { "!", 14 },
             { "#", 15 },
             { "@", 16 },
-            { "&", 17 }
+            { "&", 17 },
+            { "input", 18 },
+            { "output", 19 }
         };
 
 
-        private static Dictionary<string, int> _tableLimiters = new()
+        private static Dictionary<string, int> _tableLimiters = new() //1
         {
             { "!=", 1 },
             { "==", 2 },
@@ -114,9 +118,58 @@ namespace Kursach_AK_47
             { "}", 20 },
             { "=", 21 },
             { "\r\n", 22 },
-            { " ", 23 },
+            { " ", 23 }
         };
+        
+        private static Dictionary<int, string> _tableIdentification = new(); //2
+        
+        private static Dictionary<int, string> _tableNumbers = new(); //3
 
+        public static bool ContainsTableNumbers(string word)
+        {
+            if (_tableNumbers.ContainsValue(word))
+                return true;
+            return false;
+        }
+        public static int GetIndexTableNumbers(string word)
+        {
+            return _tableNumbers.FirstOrDefault(dict => dict.Value == word).Key;
+        }
+        public static int GetCountTableNumbers()
+        {
+            return _tableNumbers.Count;
+        }
+        public static void AddedValueInTableNumbers(string value)
+        {
+            _tableNumbers.Add(_tableNumbers.Count, value);
+        }
+        
+        public static bool ContainsTableIdentification(string word)
+        {
+            if (_tableIdentification.ContainsValue(word))
+                return true;
+            return false;
+        }
+        public static bool ContainsTableIdentification(int key)
+        {
+            if (_tableIdentification.ContainsKey(key))
+                return true;
+            return false;
+        }
+        public static int GetIndexTableIdentification(string word)
+        {
+            return _tableIdentification.FirstOrDefault(dict => dict.Value == word).Key;
+        }
+        public static int GetCountTableIdentification()
+        {
+            return _tableIdentification.Count;
+        }
+        public static void AddedValueInTableIdentification(string value)
+        {
+            _tableNumbers.Add(_tableIdentification.Count, value);
+        }
+        
+        
         public static bool ContainsTableServiceWords(string word)
         {
             if (_tableServiceWords.ContainsKey(word))

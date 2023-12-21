@@ -51,6 +51,7 @@
         <Compile Include="Scripts\DataTokens.cs" />
         <Compile Include="Scripts\LexicalAnalyzer.cs" />
         <Compile Include="Scripts\Program.cs" />
+        <Compile Include="Scripts\SyntacticAnalyzer.cs" />
         <Compile Include="WinForms\Form1.cs">
           <SubType>Form</SubType>
         </Compile>
