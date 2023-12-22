@@ -78,7 +78,7 @@ public class LexicalAnalyzer
         if (DataTokens.ContainsTableServiceWords(word)) // Поиск в таблице служебных слов
         {
             int index = DataTokens.GetIndexTableServiceWords(word);
-            _resultLexicalAnalyze.Add($"[0,{index}]]");
+            _resultLexicalAnalyze.Add($"[0,{index}]");
             if (index == 8)
                 _endAnalysis = true;
         }
@@ -95,7 +95,7 @@ public class LexicalAnalyzer
                 if (!DataTokens.ContainsTableIdentification(word))
                 {
                     index = DataTokens.GetCountTableIdentification();
-                    DataTokens.AddedValueInTableIdentification(word);
+                    DataTokens.AddedValueInTableIdentification(index, word);
                 }
                 else
                 {
@@ -275,7 +275,7 @@ public class LexicalAnalyzer
         int dotSymbol = 0;
         foreach (char ch in word)
         {
-            if (DataTokens.ContainsExp(ch))
+            if (!DataTokens.ContainsExp(ch))
                 return false;
             if (ch is 'E' or 'e')
                 expSymbol++;
@@ -333,33 +333,12 @@ public class LexicalAnalyzer
                     word += (char)_streamReader.Read();
                 break;
             case '#':
-                if (nextCH != ' ')
-                {
-                    _errorAnalysis = true;
-                    _errorMessage =
-                        "Ошибка: проблема с определением типа данных. После символа \"#\" ожидается пробел ";
-                }
-
                 break;
             case '@':
-                if (nextCH != ' ')
-                {
-                    _errorAnalysis = true;
-                    _errorMessage =
-                        "Ошибка: проблема с определением типа данных. После символа \"@\" ожидается пробел ";
-                }
-
                 break;
             case '&':
                 if (nextCH == '&')
                     word += (char)_streamReader.Read();
-                else if (nextCH != ' ')
-                {
-                    _errorAnalysis = true;
-                    _errorMessage =
-                        "Ошибка: проблема с определением типа данных. После символа \"&\" ожидается пробел ";
-                }
-
                 break;
             case '\r':
                 if (nextCH == '\n')
@@ -413,7 +392,7 @@ public class LexicalAnalyzer
                     }
 
                     if (commentState != -1)
-                        word = "comm";
+                        word = " ";
                     else
                     {
                         _errorAnalysis = true;
@@ -430,6 +409,10 @@ public class LexicalAnalyzer
         {
             _resultLexicalAnalyze.Add($"[1,{DataTokens.GetIndexTableLimiters(word)}]");
         }
+        else if (word is "!" or "#" or "@" or "&")
+        {
+            _resultLexicalAnalyze.Add($"[0,{DataTokens.GetIndexTableServiceWords(word)}]");
+        }
         else
         {
             _errorAnalysis = true;
@@ -437,9 +420,16 @@ public class LexicalAnalyzer
         }
     }
 
+    public List<string> GetResult()
+    {
+        return _resultLexicalAnalyze;
+    }
     public string GetMessageError()
     {
         return _errorMessage;
     }
-
+    public bool GetErrors()
+    {
+        return _errorAnalysis;
+    }
 }

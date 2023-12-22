@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace Kursach_AK_47
@@ -125,6 +126,43 @@ namespace Kursach_AK_47
         
         private static Dictionary<int, string> _tableNumbers = new(); //3
 
+        public static DataTable TableServiceWords()
+        {
+            DataTable table = new DataTable();
+
+            table.Columns.Add("Номер", typeof(int));
+            table.Columns.Add("Значение", typeof(string));
+            for (int i = 1; i <= _tableServiceWords.Count; i++)
+            {
+                table.Rows.Add(i, _tableServiceWords.FirstOrDefault(dict => dict.Value == i).Key);
+            }
+            return table;
+        }
+        public static DataTable TableLimiters()
+        {
+            DataTable table = new DataTable();
+
+            table.Columns.Add("Номер", typeof(int));
+            table.Columns.Add("Значение", typeof(string));
+            for (int i = 1; i <= _tableLimiters.Count; i++)
+            {
+                table.Rows.Add(i, _tableLimiters.FirstOrDefault(dict => dict.Value == i).Key);
+            }
+            return table;
+        }
+        public static DataTable TableIdentification()
+        {
+            DataTable table = new DataTable();
+
+            return table;
+        }
+        public static DataTable TableNumbers()
+        {
+            DataTable table = new DataTable();
+
+            return table;
+        }
+
         public static bool ContainsTableNumbers(string word)
         {
             if (_tableNumbers.ContainsValue(word))
@@ -164,9 +202,9 @@ namespace Kursach_AK_47
         {
             return _tableIdentification.Count;
         }
-        public static void AddedValueInTableIdentification(string value)
+        public static void AddedValueInTableIdentification(int index, string value)
         {
-            _tableNumbers.Add(_tableIdentification.Count, value);
+            _tableIdentification.Add(index, value);
         }
         
         
@@ -179,6 +217,26 @@ namespace Kursach_AK_47
         public static int GetIndexTableServiceWords(string word)
         {
             return _tableServiceWords[word];
+        }
+        
+        public static string GetValueTableServiceWords(int index)
+        {
+            return _tableServiceWords.FirstOrDefault(dict => dict.Value == index).Key;
+        }
+        
+        public static string GetValueTableLimiters(int index)
+        {
+            return _tableLimiters.FirstOrDefault(dict => dict.Value == index).Key;
+        }
+        
+        public static string GetValueTableIdentificator(int index)
+        {
+            return _tableIdentification[index];
+        }
+        
+        public static string GetValueTableNumber(int index)
+        {
+            return _tableNumbers[index];
         }
         
         public static bool ContainsTableLimiters(string word)

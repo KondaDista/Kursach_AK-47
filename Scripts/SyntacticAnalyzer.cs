@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace Kursach_AK_47;
@@ -8,7 +9,7 @@ public class SyntacticAnalyzer
 {
     private bool _endAnalysis = false;
     private bool _errorAnalysis = false;
-    private List<string> _errorMessage;
+    private List<string> _errorMessage =new();
 
     private int indexElement = 0;
     private List<string> _resultSyntacticAnalyze = new();
@@ -24,7 +25,8 @@ public class SyntacticAnalyzer
     
     private Ellement NextEllement()
     {
-        indexElement++;
+        if (indexElement < _resultSyntacticAnalyze.Count - 1)
+            indexElement++;
         return new Ellement(_resultSyntacticAnalyze[indexElement]);
     }
     
@@ -47,16 +49,50 @@ public class SyntacticAnalyzer
         }
         return ellement;
     }
+    
+    private Ellement PreviosEllement()
+    {
+        if (indexElement < _resultSyntacticAnalyze.Count - 1)
+            indexElement--;
+        return new Ellement(_resultSyntacticAnalyze[indexElement]);
+    }
+    
+    private Ellement NoSpacePreviosEllement()
+    {
+        Ellement ellement = PreviosEllement();
+        while (ellement.tableNumber == 1 && ellement.valueNumber == 23)
+        {
+            ellement = PreviosEllement();
+        }
+        return ellement;
+    }
+    
+    private Ellement NoSpaceAndLineBrokePreviosEllement()
+    {
+        Ellement ellement = NoSpacePreviosEllement();
+        while (ellement.tableNumber == 1 && ellement.valueNumber == 22)
+        {
+            ellement = NoSpacePreviosEllement();
+        }
+        return ellement;
+    }
+
+    private bool HasNext()
+    {
+        return indexElement < _resultSyntacticAnalyze.Count - 1;
+    }
 
     private void StartAnalyze()
     {
-        while (indexElement < _resultSyntacticAnalyze.Count)
+        while (HasNext())
         {
             Ellement ellement = new Ellement(_resultSyntacticAnalyze[indexElement]);
 
+            if (ellement.tableNumber == 1 && ellement.valueNumber is 22 or 23 or 16)
+                ellement = NoSpaceAndLineBrokeNextEllement();
+            
             VerifyDescription(ref ellement);
-            ellement = NoSpaceNextEllement();
-
+            
             if (ellement.tableNumber == 0 && ellement.valueNumber == 8)
                 _endAnalysis = true;
 
@@ -64,7 +100,7 @@ public class SyntacticAnalyzer
                 _errorMessage.Add("Конец синтаксического анализа: Ошибок не обнаружено.");
             if (_errorAnalysis)
             {
-                _errorMessage.Add("Ошибка синтаксического анализатора: считана не передусмотренная лексема.");
+                _errorMessage.Add($"Ошибка синтаксического анализатора: считана не передусмотренная лексема [{ellement.tableNumber},{ellement.valueNumber}].");
                 break;
             }
         }
@@ -116,6 +152,8 @@ public class SyntacticAnalyzer
         }
         else
             VerifyOperator(ref ellement);
+        if (ellement.tableNumber == 1 && ellement.valueNumber is 22 or 23 or 16 or 14)
+            ellement = NoSpaceAndLineBrokeNextEllement();
     }
 
     private void VerifyOperator(ref Ellement ellement)
@@ -137,6 +175,10 @@ public class SyntacticAnalyzer
                 case 12:
                     FixedLoopOperator(ref ellement);
                     break;
+                case 13:
+                    break;
+                case 8:
+                    break;
                 case 9:
                     ConditionalLoopOperator(ref ellement);
                     break;
@@ -148,48 +190,56 @@ public class SyntacticAnalyzer
                     break;
                 default:
                     _errorAnalysis = true;
-                    _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры составного оператора.");
+                    _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры составного оператора не найдено ключевое слово.");
                     break;
             }
         }
         else
         {
             _errorAnalysis = true;
-            _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры составного оператора.");
+            _errorMessage.Add("Ошибка синтаксического анализатора: нарушение оператора.");
         }
     }
 
     private void CompoundOperator(ref Ellement ellement)
     {
-        ellement = NoSpaceNextEllement();
+        ellement = NoSpaceAndLineBrokeNextEllement();
         VerifyOperator(ref ellement);
 
-        ellement = NoSpaceNextEllement();
-        if (ellement.tableNumber == 1 && ellement.valueNumber == 18)
+        ellement = NoSpaceAndLineBrokeNextEllement();
+        while (indexElement < _resultSyntacticAnalyze.Count - 1)
         {
-            ellement = NoSpaceNextEllement();
-            VerifyOperator(ref ellement);
-        }
-        else if (ellement.tableNumber == 1 && ellement.valueNumber == 20)
-            return;
-        else
-        {
-            _errorAnalysis = true;
-            _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры составного оператора.");
+            if (isSemicolon(ref ellement))
+            {
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                VerifyOperator(ref ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+            }
+            else if (ellement.tableNumber == 1 && ellement.valueNumber == 20)
+            {
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                return;
+            }
+            else
+            {
+                _errorAnalysis = true;
+                _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры составного оператора.");
+                return;
+            }
         }
     }
     
     private void ConditionalOperator(ref Ellement ellement) 
     {
-        _operations.Add(Expression());
+        ellement = NoSpaceNextEllement();
+        _operations.Add(Expression(ref ellement));
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 0 && ellement.valueNumber == 6)
         {
-            ellement = NoSpaceNextEllement();
+            ellement = NoSpaceAndLineBrokeNextEllement();
             VerifyOperator(ref ellement);
-            ellement = NoSpaceNextEllement();
             if (ellement.tableNumber == 0 && ellement.valueNumber == 7) {
-                ellement = NoSpaceNextEllement();
+                ellement = NoSpaceAndLineBrokeNextEllement();
                 VerifyOperator(ref ellement);
                 ellement = NoSpaceNextEllement();
             }
@@ -210,7 +260,7 @@ public class SyntacticAnalyzer
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 0 && ellement.valueNumber == 10)
         {
-            Expression();
+            Expression(ref ellement);
             if (!_errorAnalysis)
             {
                 ellement = NoSpaceNextEllement();
@@ -236,38 +286,48 @@ public class SyntacticAnalyzer
         ellement = NoSpaceAndLineBrokeNextEllement();
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
         {
-            Expression();
             ellement = NoSpaceAndLineBrokeNextEllement();
-            if (ellement.tableNumber == 1 && ellement.valueNumber == 18)
+            if (!isSemicolon(ref ellement))
             {
+                Expression(ref ellement);
                 ellement = NoSpaceAndLineBrokeNextEllement();
-                Expression();
-                ellement = NoSpaceAndLineBrokeNextEllement();
-                if (ellement.tableNumber == 1 && ellement.valueNumber == 18)
-                {
-                    ellement = NoSpaceAndLineBrokeNextEllement();
-                    Expression();
-                    ellement = NoSpaceAndLineBrokeNextEllement();
-                    if (ellement.tableNumber == 1 && ellement.valueNumber == 14)
-                    {
-                        ellement = NoSpaceAndLineBrokeNextEllement();
-                        VerifyOperator(ref ellement);
-                    }
-                    else
-                        _errorMessage.Add(
-                            "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \")\".");
-                }
-                else
-                    _errorMessage.Add(
-                        "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
+                if (!isSemicolon(ref ellement))
+                    _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
             }
             else
-                _errorMessage.Add(
-                    "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
+                _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
+            
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            if (!isSemicolon(ref ellement))
+            {
+                Expression(ref ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                if (!isSemicolon(ref ellement))
+                    _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
+            }
+            else
+                _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
+
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            if (!(ellement.tableNumber == 1 && ellement.valueNumber == 14))
+            {
+                Expression(ref ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                if (!(ellement.tableNumber == 1 && ellement.valueNumber == 14))
+                    _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \")\".");
+            }
+
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            VerifyOperator(ref ellement);
         }
         else
             _errorMessage.Add(
-                "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \")\".");
+                "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \"(\".");
+    }
+
+    private bool isSemicolon(ref Ellement ellement)
+    {
+        return ellement.tableNumber == 1 && ellement.valueNumber == 18;
     }
     
     private void InputOperator(ref Ellement ellement) {
@@ -315,14 +375,14 @@ public class SyntacticAnalyzer
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
         {
             ellement = NoSpaceNextEllement();
-            Expression();
+            Expression(ref ellement);
             if (!_errorAnalysis)
             {
                 ellement = NextEllement();
                 while (ellement.tableNumber == 1 && ellement.valueNumber == 23)
                 {
                     ellement = NextEllement();
-                    Expression();
+                    Expression(ref ellement);
                     if (!_errorAnalysis)
                         ellement = NextEllement();
                     else
@@ -355,81 +415,138 @@ public class SyntacticAnalyzer
     private void AssignmentOperatorForIdentification(ref Ellement ellement) 
     {
         if (DataTokens.ContainsTableIdentification(ellement.valueNumber))
+        {
+            _operations.Add(Expression(ref ellement));
             ellement = NoSpaceNextEllement();
-        
-        if(ellement.tableNumber == 1 && ellement.valueNumber == 21)
-            _operations.Add(Expression());
+            if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
+            {
+                ellement = NoSpaceNextEllement();
+                _operations.Add(Expression(ref ellement));
+            }
+            else
+            {
+                _errorAnalysis = true;
+                _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения var [{ellement.tableNumber },{ellement.valueNumber }].");
+            }
+        }
         else
         {
             _errorAnalysis = true;
-            _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора присвоения.");
+            _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения var не найден идентификатор [{ellement.tableNumber },{ellement.valueNumber }].");
         }
     }
 
     private void AssignmentOperator(ref Ellement ellement)
     {
         ellement = NoSpaceNextEllement();
-        if (ellement.tableNumber == 3 && DataTokens.ContainsTableIdentification(ellement.valueNumber))
+        if (ellement.tableNumber == 2 && DataTokens.ContainsTableIdentification(ellement.valueNumber))
         {
             //putIdentification(next.index, 4);
+            ellement = NoSpaceNextEllement();
+            if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
+            {
+                ellement = NoSpaceNextEllement();
+                _operations.Add(Expression(ref ellement));
+                ellement = NoSpaceAndLineBrokeNextEllement();
+            }
+            else
+            {
+                _errorAnalysis = true;
+                _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения [{ellement.tableNumber },{ellement.valueNumber }].");
+            }
         }
         else
         {
             _errorAnalysis = true;
-            _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора присвоения.");
+            _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения не найден идентификатор [{ellement.tableNumber },{ellement.valueNumber }].");
         }
     }
 
-    private String Expression()
+    private String Expression(ref Ellement ellement)
     {
         StringBuilder operation = new StringBuilder();
-        operation.Append(Operand());
-        Ellement ellement = NoSpaceNextEllement();
-        while (ellement.tableNumber == 1 && ellement.valueNumber is 1 or 2 or 3 or 4 or 5 or 6)
-            operation.Append(ellement).Append(Operand());
+        operation.Append(Operand(ref ellement));
+        while (HasNext())
+        {
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            if (ellement.tableNumber == 1 && ellement.valueNumber is 1 or 2 or 3 or 4 or 5 or 6)
+            {
+                operation.Append(ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                operation.Append(Operand(ref ellement));
+            }
+            else
+            {
+                ellement = NoSpaceAndLineBrokePreviosEllement();
+                return operation.ToString();
+            }
+        }
         return operation.ToString();
     }
 
-    private String Operand()
+    private String Operand(ref Ellement ellement)
     {
         StringBuilder operation = new StringBuilder();
-        operation.Append(Summand());
-        Ellement ellement = NoSpaceNextEllement();
-        while (ellement.tableNumber == 1 && ellement.valueNumber is 7 or 8 or 9)
-            operation.Append(ellement).Append(Summand());
+        operation.Append(Summand(ref ellement));
+        while (HasNext())
+        {
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            if (ellement.tableNumber == 1 && ellement.valueNumber is 7 or 8 or 9)
+            {
+                operation.Append(ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                operation.Append(Summand(ref ellement));
+            }
+            else
+            {
+                ellement = NoSpaceAndLineBrokePreviosEllement();
+                return operation.ToString();
+            }
+        }
         return operation.ToString();
     }
 
-    private String Summand()
+    private String Summand(ref Ellement ellement)
     {
         StringBuilder operation = new StringBuilder();
-        operation.Append(Multiplier());
-        Ellement ellement = NoSpaceNextEllement();
-        while (ellement.tableNumber == 1 && ellement.valueNumber is 10 or 11 or 12)
-            operation.Append(ellement).Append(Multiplier());
+        operation.Append(Multiplier(ref ellement));
+        while (HasNext())
+        {
+            ellement = NoSpaceAndLineBrokeNextEllement();
+            if (ellement.tableNumber == 1 && ellement.valueNumber is 10 or 11 or 12)
+            {
+                operation.Append(ellement);
+                ellement = NoSpaceAndLineBrokeNextEllement();
+                operation.Append(Multiplier(ref ellement));
+            }
+            else
+            {
+                ellement = NoSpaceAndLineBrokePreviosEllement();
+                return operation.ToString();
+            }
+        }
         return operation.ToString();
     }
 
-    private String Multiplier()
+    private String Multiplier(ref Ellement ellement)
     {
         int stateParentheses = 0;
         StringBuilder multiplierString = new StringBuilder();
-        Ellement ellement = NoSpaceNextEllement();
         if (ellement.tableNumber is 2 or 3 || (ellement.tableNumber == 0 && ellement.valueNumber is 1 or 2))
         {
             multiplierString.Append(ellement);
         }
         else if (ellement.tableNumber == 0 && ellement.valueNumber == 14)
         {
-            multiplierString.Append(ellement).Append(Multiplier());
+            multiplierString.Append(ellement).Append(Multiplier(ref ellement));
         }
         else if (ellement.tableNumber == 1)
         {
             if (ellement.valueNumber == 13)
             {
                 stateParentheses = 1;
-                multiplierString.Append(ellement).Append(Expression());
-                ellement = NoSpaceNextEllement();
+                multiplierString.Append(ellement).Append(Expression(ref ellement));
+                ellement = NoSpaceAndLineBrokeNextEllement();
             }
             if (ellement.valueNumber == 14)
             {
@@ -456,12 +573,46 @@ public class SyntacticAnalyzer
     {
         public int tableNumber { get; private set; }
         public int valueNumber { get; private set; }
+        
+        public string nameWord { get; private set; }
 
         public Ellement(string word)
         {
             string[] nums = word.Trim('[', ']').Split(',');
             tableNumber = Convert.ToInt32(nums[0]);
             valueNumber = Convert.ToInt32(nums[1]);
+            nameWord = SetWord();
         }
+        
+        public String SetWord()
+        {
+            if (tableNumber == 0) 
+            {
+                return DataTokens.GetValueTableServiceWords(valueNumber);
+            }
+            else if (tableNumber == 1) 
+            {
+                return DataTokens.GetValueTableLimiters(valueNumber);
+            }
+            else if (tableNumber == 2) 
+            {
+                return DataTokens.GetValueTableIdentificator(valueNumber);
+            }
+            else if (tableNumber == 3) 
+            {
+                return DataTokens.GetValueTableNumber(valueNumber);
+            }
+            else
+                return "";
+        }
+    }
+    
+    public List<string> GetErrorMessage()
+    {
+        return _errorMessage;
+    }
+    public bool GetErrors()
+    {
+        return _errorAnalysis;
     }
 }
