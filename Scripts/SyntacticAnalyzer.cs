@@ -14,9 +14,6 @@ public class SyntacticAnalyzer
     private int indexElement = 0;
     private List<string> _resultSyntacticAnalyze = new();
 
-    private Dictionary<string, string> _descriptions = new();
-    private List<string> _operations = new();
-
     public SyntacticAnalyzer(List<string> _resultLexicalAnalyze)
     {
         _resultSyntacticAnalyze = _resultLexicalAnalyze;
@@ -97,7 +94,12 @@ public class SyntacticAnalyzer
                 _endAnalysis = true;
 
             if (_endAnalysis)
+            {
+                var a = DataTokens.tableExpression;
+                var b = DataTokens.tableAssigment;
                 _errorMessage.Add("Конец синтаксического анализа: Ошибок не обнаружено.");
+            }
+
             if (_errorAnalysis)
             {
                 _errorMessage.Add($"Ошибка синтаксического анализатора: считана не передусмотренная лексема [{ellement.tableNumber},{ellement.valueNumber}].");
@@ -232,7 +234,7 @@ public class SyntacticAnalyzer
     private void ConditionalOperator(ref Ellement ellement) 
     {
         ellement = NoSpaceNextEllement();
-        _operations.Add(Expression(ref ellement));
+        DataTokens.tableExpression.Add(Expression(ref ellement));
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 0 && ellement.valueNumber == 6)
         {
@@ -260,7 +262,8 @@ public class SyntacticAnalyzer
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 0 && ellement.valueNumber == 10)
         {
-            Expression(ref ellement);
+            DataTokens.tableExpression.Add(Expression(ref ellement));
+            /*Expression(ref ellement);*/
             if (!_errorAnalysis)
             {
                 ellement = NoSpaceNextEllement();
@@ -289,7 +292,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (!isSemicolon(ref ellement))
             {
-                Expression(ref ellement);
+                DataTokens.tableExpression.Add(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 if (!isSemicolon(ref ellement))
                     _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
@@ -300,7 +303,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (!isSemicolon(ref ellement))
             {
-                Expression(ref ellement);
+                DataTokens.tableExpression.Add(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 if (!isSemicolon(ref ellement))
                     _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \";\".");
@@ -311,7 +314,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (!(ellement.tableNumber == 1 && ellement.valueNumber == 14))
             {
-                Expression(ref ellement);
+                DataTokens.tableExpression.Add(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 if (!(ellement.tableNumber == 1 && ellement.valueNumber == 14))
                     _errorMessage.Add("Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \")\".");
@@ -375,14 +378,14 @@ public class SyntacticAnalyzer
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
         {
             ellement = NoSpaceNextEllement();
-            Expression(ref ellement);
+            DataTokens.tableExpression.Add(Expression(ref ellement));
             if (!_errorAnalysis)
             {
                 ellement = NextEllement();
                 while (ellement.tableNumber == 1 && ellement.valueNumber == 23)
                 {
                     ellement = NextEllement();
-                    Expression(ref ellement);
+                    DataTokens.tableExpression.Add(Expression(ref ellement));
                     if (!_errorAnalysis)
                         ellement = NextEllement();
                     else
@@ -416,12 +419,12 @@ public class SyntacticAnalyzer
     {
         if (DataTokens.ContainsTableIdentification(ellement.valueNumber))
         {
-            _operations.Add(Expression(ref ellement));
+            DataTokens.tableAssigment.Add(Expression(ref ellement));
             ellement = NoSpaceNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
             {
                 ellement = NoSpaceNextEllement();
-                _operations.Add(Expression(ref ellement));
+                DataTokens.tableAssigment.Add(Expression(ref ellement));
             }
             else
             {
@@ -446,7 +449,7 @@ public class SyntacticAnalyzer
             if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
             {
                 ellement = NoSpaceNextEllement();
-                _operations.Add(Expression(ref ellement));
+                DataTokens.tableAssigment.Add(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
             }
             else
@@ -471,7 +474,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber is 1 or 2 or 3 or 4 or 5 or 6)
             {
-                operation.Append(ellement);
+                operation.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 operation.Append(Operand(ref ellement));
             }
@@ -493,7 +496,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber is 7 or 8 or 9)
             {
-                operation.Append(ellement);
+                operation.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 operation.Append(Summand(ref ellement));
             }
@@ -515,7 +518,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber is 10 or 11 or 12)
             {
-                operation.Append(ellement);
+                operation.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
                 ellement = NoSpaceAndLineBrokeNextEllement();
                 operation.Append(Multiplier(ref ellement));
             }
@@ -534,24 +537,24 @@ public class SyntacticAnalyzer
         StringBuilder multiplierString = new StringBuilder();
         if (ellement.tableNumber is 2 or 3 || (ellement.tableNumber == 0 && ellement.valueNumber is 1 or 2))
         {
-            multiplierString.Append(ellement);
+            multiplierString.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
         }
         else if (ellement.tableNumber == 0 && ellement.valueNumber == 14)
         {
-            multiplierString.Append(ellement).Append(Multiplier(ref ellement));
+            multiplierString.Append($"[{ellement.tableNumber},{ellement.valueNumber}]").Append(Multiplier(ref ellement));
         }
         else if (ellement.tableNumber == 1)
         {
             if (ellement.valueNumber == 13)
             {
                 stateParentheses = 1;
-                multiplierString.Append(ellement).Append(Expression(ref ellement));
+                multiplierString.Append($"[{ellement.tableNumber},{ellement.valueNumber}]").Append(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
             }
             if (ellement.valueNumber == 14)
             {
                 if (stateParentheses == 1)
-                    multiplierString.Append(ellement);
+                    multiplierString.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
             }
 
             if (stateParentheses != 1)

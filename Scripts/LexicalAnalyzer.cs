@@ -10,7 +10,7 @@ public class LexicalAnalyzer
     private StreamReader _streamReader;
     private bool _endAnalysis = false;
     private bool _errorAnalysis = false;
-    private string _errorMessage;
+    private List<string> _errorMessage =new();
 
     private List<string> _resultLexicalAnalyze = new();
 
@@ -48,14 +48,18 @@ public class LexicalAnalyzer
                         _verificationSymbol(word);
                     }
 
-                    if (_endAnalysis || _errorAnalysis)
+                    if (_endAnalysis)
+                    {
+                        _errorMessage.Add("Конец лексического анализа: Ошибок не обнаружено.");
                         break;
+                    }
+
                 }
             }
         }
         catch (Exception e)
         {
-            _errorMessage = $"Ошибка чтения: Произошлая проблема во время чтения файла.\r\nТекст ошибки: {e}";
+            _errorMessage.Add($"Ошибка чтения: Произошлая проблема во время чтения файла.\r\nТекст ошибки: {e}");
             Console.WriteLine(e);
             throw;
         }
@@ -167,7 +171,7 @@ public class LexicalAnalyzer
         else
         {
             _errorAnalysis = true;
-            _errorMessage = $"Ошибка: число \"{word}\" не поддерживается данным языком";
+            _errorMessage.Add($"Ошибка: число \"{word}\" не поддерживается данным языком");
             return;
         }
 
@@ -346,8 +350,7 @@ public class LexicalAnalyzer
                 else
                 {
                     _errorAnalysis = true;
-                    _errorMessage =
-                        "Ошибка: проблема с переносом строки, после переноса каретки \\r отстутствует символ переноса строки \\n";
+                    _errorMessage.Add("Ошибка: проблема с переносом строки, после переноса каретки \\r отстутствует символ переноса строки \\n");
                 }
 
                 break;
@@ -357,7 +360,7 @@ public class LexicalAnalyzer
                 else
                 {
                     _errorAnalysis = true;
-                    _errorMessage = "Ошибка: операции \"|\" нет в списке разделителей, возможно вы имели \"||\"";
+                    _errorMessage.Add("Ошибка: операции \"|\" нет в списке разделителей, возможно вы имели \"||\"");
                 }
 
                 break;
@@ -396,7 +399,7 @@ public class LexicalAnalyzer
                     else
                     {
                         _errorAnalysis = true;
-                        _errorMessage = "Ошибка: неверно написан комментарий";
+                        _errorMessage.Add("Ошибка: неверно написан комментарий");
                     }
                 }
 
@@ -416,7 +419,7 @@ public class LexicalAnalyzer
         else
         {
             _errorAnalysis = true;
-            _errorMessage = $"Ошибка: символ [{word}] не предусмотрен данным языком";
+            _errorMessage.Add($"Ошибка: символ [{word}] не предусмотрен данным языком");
         }
     }
 
@@ -424,7 +427,7 @@ public class LexicalAnalyzer
     {
         return _resultLexicalAnalyze;
     }
-    public string GetMessageError()
+    public List<string> GetErrorMessage()
     {
         return _errorMessage;
     }

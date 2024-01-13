@@ -42,9 +42,7 @@ namespace Kursach_AK_47
             dataGridView1.ClearSelection(); // _tableServiceWords
             dataGridView2.ClearSelection(); // _tableLimiters
             dataGridView3.ClearSelection(); // _tableIdentification
-            DataTable tableIdentification = new DataTable();
             dataGridView4.ClearSelection(); // _tableNumbers
-            DataTable tableNumbers = new DataTable();
             textBox9.Clear();
             listBox1.Items.Clear();
 
@@ -54,11 +52,16 @@ namespace Kursach_AK_47
                 dataGridView2.DataSource = DataTokens.TableLimiters();
                 
                 LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(path);
-                textBox9.Text += lexicalAnalyzer.GetMessageError() + "\r\n";
+                foreach (string str in lexicalAnalyzer.GetErrorMessage())
+                {
+                    textBox9.Text += str + "\r\n";
+                }
+                
+                
                 if (!lexicalAnalyzer.GetErrors())
                 {
-                    dataGridView3.DataSource = tableIdentification;
-                    dataGridView4.DataSource = tableNumbers;
+                    dataGridView3.DataSource = DataTokens.TableIdentification();
+                    dataGridView4.DataSource = DataTokens.TableNumbers();
 
                     listBox1.Items.AddRange(lexicalAnalyzer.GetResult().ToArray());
                     SyntacticAnalyzer syntacticAnalyzer = new SyntacticAnalyzer(lexicalAnalyzer.GetResult());

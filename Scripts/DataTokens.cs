@@ -125,6 +125,9 @@ namespace Kursach_AK_47
         private static Dictionary<int, string> _tableIdentification = new(); //2
         
         private static Dictionary<int, string> _tableNumbers = new(); //3
+        
+        public static List<String> tableExpression = new();
+        public static List<String> tableAssigment = new();
 
         public static DataTable TableServiceWords()
         {
@@ -154,12 +157,24 @@ namespace Kursach_AK_47
         {
             DataTable table = new DataTable();
 
+            table.Columns.Add("Номер", typeof(int));
+            table.Columns.Add("Значение", typeof(string));
+            for (int i = 0; i < _tableIdentification.Count; i++)
+            {
+                table.Rows.Add(i + 1, _tableIdentification[i]);
+            }
             return table;
         }
         public static DataTable TableNumbers()
         {
             DataTable table = new DataTable();
 
+            table.Columns.Add("Номер", typeof(int));
+            table.Columns.Add("Значение", typeof(string));
+            for (int i = 0; i < _tableNumbers.Count; i++)
+            {
+                table.Rows.Add(i + 1, _tableNumbers[i]);
+            }
             return table;
         }
 
