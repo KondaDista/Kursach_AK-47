@@ -279,24 +279,25 @@ public class LexicalAnalyzer
         }
         return false;
     }
+
     private bool IsFloat(string word)
     {
         int dotSimbol = 0;
-        for (int i = 0; i < word.Length; i++)
+
+        foreach (char ch in word)
         {
-            foreach(char ch in word)
-            {
-                if (!DataTokens.ContainsFloat(ch)) 
-                    return false;
-                if (ch == '.')
-                    dotSimbol++;
-                if (dotSimbol > 1)
-                    return false;
-            }
-            return true;
+            if (!DataTokens.ContainsFloat(ch))
+                return false;
+            if (ch == '.' && ch == word[word.Length - 1])
+                return false;  
+            if (ch == '.')
+                dotSimbol++;
+            if (dotSimbol > 1)
+                return false;
         }
         return true;
     }
+
     private bool IsExp(string word)
     {
         int expSymbol = 0;
@@ -305,6 +306,8 @@ public class LexicalAnalyzer
         foreach (char ch in word)
         {
             if (!DataTokens.ContainsExp(ch))
+                return false;
+            if (ch is 'E' or 'e' && ch == word[word.Length - 1])
                 return false;
             if (ch is 'E' or 'e')
                 expSymbol++;
