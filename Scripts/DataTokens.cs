@@ -122,12 +122,16 @@ namespace Kursach_AK_47
             { " ", 23 }
         };
         
-        private static Dictionary<int, string> _tableIdentification = new(); //2
+        public static Dictionary<int, string> _tableIdentification = new(); //2
         
-        private static Dictionary<int, string> _tableNumbers = new(); //3
+        public static Dictionary<int, string> _tableNumbers = new(); //3
         
-        public static List<String> tableExpression = new();
-        public static List<String> tableAssigment = new();
+        public static List<string> tableExpression = new();
+        public static List<string> tableAssigment = new();
+        
+        public static Dictionary<string, int> tableExpressionTypes = new();
+        public static Dictionary<int, int> tableNumberTypes = new();
+        public static Dictionary<int, int> tableIdTypes = new();
 
         public static DataTable TableServiceWords()
         {

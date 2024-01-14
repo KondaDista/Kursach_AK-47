@@ -20,16 +20,16 @@ public class SyntacticAnalyzer
         StartAnalyze();
     }
     
-    private Ellement NextEllement()
+    private EllementSyntactic NextEllement()
     {
         if (indexElement < _resultSyntacticAnalyze.Count - 1)
             indexElement++;
-        return new Ellement(_resultSyntacticAnalyze[indexElement]);
+        return new EllementSyntactic(_resultSyntacticAnalyze[indexElement]);
     }
     
-    private Ellement NoSpaceNextEllement()
+    private EllementSyntactic NoSpaceNextEllement()
     {
-        Ellement ellement = NextEllement();
+        EllementSyntactic ellement = NextEllement();
         while (ellement.tableNumber == 1 && ellement.valueNumber == 23)
         {
             ellement = NextEllement();
@@ -37,9 +37,9 @@ public class SyntacticAnalyzer
         return ellement;
     }
     
-    private Ellement NoSpaceAndLineBrokeNextEllement()
+    private EllementSyntactic NoSpaceAndLineBrokeNextEllement()
     {
-        Ellement ellement = NoSpaceNextEllement();
+        EllementSyntactic ellement = NoSpaceNextEllement();
         while (ellement.tableNumber == 1 && ellement.valueNumber == 22)
         {
             ellement = NoSpaceNextEllement();
@@ -47,16 +47,16 @@ public class SyntacticAnalyzer
         return ellement;
     }
     
-    private Ellement PreviosEllement()
+    private EllementSyntactic PreviosEllement()
     {
         if (indexElement < _resultSyntacticAnalyze.Count - 1)
             indexElement--;
-        return new Ellement(_resultSyntacticAnalyze[indexElement]);
+        return new EllementSyntactic(_resultSyntacticAnalyze[indexElement]);
     }
     
-    private Ellement NoSpacePreviosEllement()
+    private EllementSyntactic NoSpacePreviosEllement()
     {
-        Ellement ellement = PreviosEllement();
+        EllementSyntactic ellement = PreviosEllement();
         while (ellement.tableNumber == 1 && ellement.valueNumber == 23)
         {
             ellement = PreviosEllement();
@@ -64,9 +64,9 @@ public class SyntacticAnalyzer
         return ellement;
     }
     
-    private Ellement NoSpaceAndLineBrokePreviosEllement()
+    private EllementSyntactic NoSpaceAndLineBrokePreviosEllement()
     {
-        Ellement ellement = NoSpacePreviosEllement();
+        EllementSyntactic ellement = NoSpacePreviosEllement();
         while (ellement.tableNumber == 1 && ellement.valueNumber == 22)
         {
             ellement = NoSpacePreviosEllement();
@@ -83,7 +83,7 @@ public class SyntacticAnalyzer
     {
         while (HasNext())
         {
-            Ellement ellement = new Ellement(_resultSyntacticAnalyze[indexElement]);
+            EllementSyntactic ellement = new EllementSyntactic(_resultSyntacticAnalyze[indexElement]);
 
             if (ellement.tableNumber == 1 && ellement.valueNumber is 22 or 23 or 16)
                 ellement = NoSpaceAndLineBrokeNextEllement();
@@ -97,6 +97,7 @@ public class SyntacticAnalyzer
             {
                 var a = DataTokens.tableExpression;
                 var b = DataTokens.tableAssigment;
+                var c = DataTokens._tableNumbers;
                 _errorMessage.Add("Конец синтаксического анализа: Ошибок не обнаружено.");
             }
 
@@ -108,18 +109,26 @@ public class SyntacticAnalyzer
         }
     }
 
-    private void VerifyDescription(ref Ellement ellement)
+    private void VerifyDescription(ref EllementSyntactic ellement)
     {
+        List<int> masIdentificator = new List<int>();
         bool errorVerify = false;
+        int local_type;
+        var a = DataTokens._tableIdentification;
         if (ellement.tableNumber == 0 && ellement.valueNumber == 3)
         {
             ellement = NoSpaceNextEllement();
-            while (DataTokens.ContainsTableIdentification(ellement.valueNumber))
+            masIdentificator.Add(ellement.valueNumber);
+            //DataTokens.tableIdTypes.Add(ellement.valueNumber, local_type);
+            while (ellement.tableNumber == 2 && DataTokens.ContainsTableIdentification(ellement.valueNumber))
             {
                 ellement = NoSpaceNextEllement();
+
                 while (ellement.tableNumber == 1 && ellement.valueNumber == 17)
                 {
                     ellement = NoSpaceNextEllement();
+                    masIdentificator.Add(ellement.valueNumber);
+                    //DataTokens.tableIdTypes.Add(ellement.valueNumber, local_type);
                     if (DataTokens.ContainsTableIdentification(ellement.valueNumber))
                         ellement = NoSpaceNextEllement();
                     else
@@ -132,9 +141,24 @@ public class SyntacticAnalyzer
                 if (ellement.tableNumber == 1 && ellement.valueNumber == 16)
                 {
                     ellement = NoSpaceNextEllement();
-                    if (ellement.tableNumber == 0 && (ellement.valueNumber == 15 || ellement.valueNumber == 16 ||
-                                                      ellement.valueNumber == 17))
+                    if (ellement.tableNumber == 0 && (ellement.valueNumber == 15 || ellement.valueNumber == 16 || ellement.valueNumber == 17))
                     {
+                        foreach (var identificator in masIdentificator)
+                        {
+                            switch (ellement.valueNumber)
+                            {
+                                case 15:
+                                    DataTokens.tableIdTypes.Add(identificator, 1);
+                                    break;
+                                case 16:
+                                    DataTokens.tableIdTypes.Add(identificator, 2);
+                                    break;
+                                case 17:
+                                    DataTokens.tableIdTypes.Add(identificator, 3);
+                                    break;
+                            }
+                        }
+                        
                         ellement = NoSpaceNextEllement();
                         if (ellement.tableNumber == 1 && ellement.valueNumber == 18)
                             ellement = NoSpaceNextEllement();
@@ -158,7 +182,7 @@ public class SyntacticAnalyzer
             ellement = NoSpaceAndLineBrokeNextEllement();
     }
 
-    private void VerifyOperator(ref Ellement ellement)
+    private void VerifyOperator(ref EllementSyntactic ellement)
     {
         if (ellement.tableNumber == 1 && ellement.valueNumber == 19)
             CompoundOperator(ref ellement);
@@ -203,7 +227,7 @@ public class SyntacticAnalyzer
         }
     }
 
-    private void CompoundOperator(ref Ellement ellement)
+    private void CompoundOperator(ref EllementSyntactic ellement)
     {
         ellement = NoSpaceAndLineBrokeNextEllement();
         VerifyOperator(ref ellement);
@@ -231,7 +255,7 @@ public class SyntacticAnalyzer
         }
     }
     
-    private void ConditionalOperator(ref Ellement ellement) 
+    private void ConditionalOperator(ref EllementSyntactic ellement) 
     {
         ellement = NoSpaceNextEllement();
         DataTokens.tableExpression.Add(Expression(ref ellement));
@@ -258,7 +282,7 @@ public class SyntacticAnalyzer
         }
     }
     
-    private void ConditionalLoopOperator(ref Ellement ellement) {
+    private void ConditionalLoopOperator(ref EllementSyntactic ellement) {
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 0 && ellement.valueNumber == 10)
         {
@@ -284,7 +308,7 @@ public class SyntacticAnalyzer
         
     }
 
-    private void FixedLoopOperator(ref Ellement ellement)
+    private void FixedLoopOperator(ref EllementSyntactic ellement)
     {
         ellement = NoSpaceAndLineBrokeNextEllement();
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
@@ -328,12 +352,12 @@ public class SyntacticAnalyzer
                 "Ошибка синтаксического анализатора: нарушение структуры оператора фиксированного цикла ожидается \"(\".");
     }
 
-    private bool isSemicolon(ref Ellement ellement)
+    private bool isSemicolon(ref EllementSyntactic ellement)
     {
         return ellement.tableNumber == 1 && ellement.valueNumber == 18;
     }
     
-    private void InputOperator(ref Ellement ellement) {
+    private void InputOperator(ref EllementSyntactic ellement) {
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
         {
@@ -373,7 +397,7 @@ public class SyntacticAnalyzer
         }
     }
     
-    private void OutputOperator(ref Ellement ellement) {
+    private void OutputOperator(ref EllementSyntactic ellement) {
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 1 && ellement.valueNumber == 13)
         {
@@ -415,16 +439,20 @@ public class SyntacticAnalyzer
         }
     }
     
-    private void AssignmentOperatorForIdentification(ref Ellement ellement) 
+    private void AssignmentOperatorForIdentification(ref EllementSyntactic ellement) 
     {
+        StringBuilder stringBuilder = new();
         if (DataTokens.ContainsTableIdentification(ellement.valueNumber))
         {
-            DataTokens.tableAssigment.Add(Expression(ref ellement));
+            stringBuilder.Append(Expression(ref ellement));
+            /*DataTokens.tableAssigment.Add(Expression(ref ellement));*/
             ellement = NoSpaceNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
             {
+                stringBuilder.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
                 ellement = NoSpaceNextEllement();
-                DataTokens.tableAssigment.Add(Expression(ref ellement));
+                stringBuilder.Append(Expression(ref ellement));
+                /*DataTokens.tableAssigment.Add(Expression(ref ellement));*/
             }
             else
             {
@@ -437,19 +465,25 @@ public class SyntacticAnalyzer
             _errorAnalysis = true;
             _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения var не найден идентификатор [{ellement.tableNumber },{ellement.valueNumber }].");
         }
+
+        DataTokens.tableAssigment.Add(stringBuilder.ToString());
     }
 
-    private void AssignmentOperator(ref Ellement ellement)
+    private void AssignmentOperator(ref EllementSyntactic ellement)
     {
+        StringBuilder stringBuilder = new StringBuilder("[0,4]");
         ellement = NoSpaceNextEllement();
         if (ellement.tableNumber == 2 && DataTokens.ContainsTableIdentification(ellement.valueNumber))
         {
+            stringBuilder.Append(Expression(ref ellement));
             //putIdentification(next.index, 4);
+            DataTokens.tableIdTypes.Add(ellement.valueNumber, 4);
             ellement = NoSpaceNextEllement();
             if (ellement.tableNumber == 1 && ellement.valueNumber == 21)
             {
+                stringBuilder.Append($"[{ellement.tableNumber},{ellement.valueNumber}]");
                 ellement = NoSpaceNextEllement();
-                DataTokens.tableAssigment.Add(Expression(ref ellement));
+                stringBuilder.Append(Expression(ref ellement));
                 ellement = NoSpaceAndLineBrokeNextEllement();
             }
             else
@@ -463,9 +497,11 @@ public class SyntacticAnalyzer
             _errorAnalysis = true;
             _errorMessage.Add($"Ошибка синтаксического анализатора: нарушение структуры оператора присвоения не найден идентификатор [{ellement.tableNumber },{ellement.valueNumber }].");
         }
+        
+        DataTokens.tableAssigment.Add(stringBuilder.ToString());
     }
 
-    private String Expression(ref Ellement ellement)
+    private String Expression(ref EllementSyntactic ellement)
     {
         StringBuilder operation = new StringBuilder();
         operation.Append(Operand(ref ellement));
@@ -487,7 +523,7 @@ public class SyntacticAnalyzer
         return operation.ToString();
     }
 
-    private String Operand(ref Ellement ellement)
+    private String Operand(ref EllementSyntactic ellement)
     {
         StringBuilder operation = new StringBuilder();
         operation.Append(Summand(ref ellement));
@@ -509,7 +545,7 @@ public class SyntacticAnalyzer
         return operation.ToString();
     }
 
-    private String Summand(ref Ellement ellement)
+    private String Summand(ref EllementSyntactic ellement)
     {
         StringBuilder operation = new StringBuilder();
         operation.Append(Multiplier(ref ellement));
@@ -531,7 +567,7 @@ public class SyntacticAnalyzer
         return operation.ToString();
     }
 
-    private String Multiplier(ref Ellement ellement)
+    private String Multiplier(ref EllementSyntactic ellement)
     {
         int stateParentheses = 0;
         StringBuilder multiplierString = new StringBuilder();
@@ -572,14 +608,14 @@ public class SyntacticAnalyzer
         return multiplierString.ToString();
     }
 
-    public class Ellement
+    public class EllementSyntactic
     {
         public int tableNumber { get; private set; }
         public int valueNumber { get; private set; }
         
         public string nameWord { get; private set; }
 
-        public Ellement(string word)
+        public EllementSyntactic(string word)
         {
             string[] nums = word.Trim('[', ']').Split(',');
             tableNumber = Convert.ToInt32(nums[0]);

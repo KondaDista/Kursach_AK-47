@@ -72,12 +72,12 @@ namespace Kursach_AK_47
 
                     if (!syntacticAnalyzer.GetErrors())
                     {
-                        /*SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+                        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 
                         foreach (string str in semanticAnalyzer.GetErrorMessage())
                         {
                             textBox9.Text += str + "\r\n";
-                        }*/
+                        }
                     }
                 }
             }

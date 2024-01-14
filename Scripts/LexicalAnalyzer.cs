@@ -13,6 +13,8 @@ public class LexicalAnalyzer
     private List<string> _errorMessage =new();
 
     private List<string> _resultLexicalAnalyze = new();
+    
+    private int typeOfNumber = 0;
 
     public LexicalAnalyzer(string path)
     {
@@ -33,15 +35,12 @@ public class LexicalAnalyzer
                     {
                         _readingWord(ref CH, out string word);
                         _verificationWord(word);
-
                     }
-
-                    if (DataTokens.ContainsNumber(ref CH))
+                    if (DataTokens.ContainsNumber(ref CH) || CH == '.')
                     {
                         _readingNumber(ref CH, out string word);
-                        _verificationNumber(word);
+                        AddNumber(_verificationNumber(word));
                     }
-
                     if (DataTokens.ContainsSymbol(ref CH))
                     {
                         _readingSymbol(ref CH, out string word);
@@ -136,7 +135,7 @@ public class LexicalAnalyzer
                 break;
         }
     }
-    private void _verificationNumber(string word)
+    private string _verificationNumber(string word)
     {
         int index;
         string result;
@@ -146,15 +145,30 @@ public class LexicalAnalyzer
             substring = word.Substring(0, word.Length - 1);
 
         if (IsBinary(word))
+        {
             result = substring;
+            typeOfNumber = 1;
+        }
         else if (IsOct(word))
+        {
             result = Convert.ToString(Convert.ToInt32(substring, 8), 2);
+            typeOfNumber = 1;
+        }
         else if (IsDec(word))
+        {
             result = Convert.ToString(Convert.ToInt32(substring, 10), 2);
+            typeOfNumber = 1;
+        }
         else if (IsHex(word))
+        {
             result = Convert.ToString(Convert.ToInt32(substring, 16), 2);
+            typeOfNumber = 1;
+        }
         else if (IsFloat(word))
+        {
             result = ConvertFloatToBin(word);
+            typeOfNumber = 2;
+        }
         else if (IsExp(word))
         {
             char splitSymbol = word.Contains('E') ? 'E' : 'e';
@@ -167,12 +181,13 @@ public class LexicalAnalyzer
                 result = ConvertFloatToBin(expNum.ToString());
             else
                 result = Convert.ToString((int)expNum, 2);
+            typeOfNumber = 2;
         }
         else
         {
             _errorAnalysis = true;
             _errorMessage.Add($"Ошибка: число \"{word}\" не поддерживается данным языком");
-            return;
+            return "Ошибка: число \"{word}\" не поддерживается данным языком";
         }
 
         if (!DataTokens.ContainsTableNumbers(result))
@@ -184,6 +199,16 @@ public class LexicalAnalyzer
             index = DataTokens.GetIndexTableNumbers(result);
 
         _resultLexicalAnalyze.Add($"[3,{index}]");
+        return result;
+    }
+    
+    private void AddNumber(string num) {
+        int index = DataTokens.GetIndexTableNumbers(num);
+        var a = DataTokens._tableNumbers;
+        if (DataTokens.tableNumberTypes.ContainsKey(index))
+            DataTokens.tableNumberTypes[index] = typeOfNumber;
+        else
+            DataTokens.tableNumberTypes.Add(index, typeOfNumber);
     }
 
     private bool IsBinary(string word)
