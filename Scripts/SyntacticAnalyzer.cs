@@ -95,9 +95,6 @@ public class SyntacticAnalyzer
 
             if (_endAnalysis)
             {
-                var a = DataTokens.tableExpression;
-                var b = DataTokens.tableAssigment;
-                var c = DataTokens._tableNumbers;
                 _errorMessage.Add("Конец синтаксического анализа: Ошибок не обнаружено.");
             }
 
@@ -114,12 +111,10 @@ public class SyntacticAnalyzer
         List<int> masIdentificator = new List<int>();
         bool errorVerify = false;
         int local_type;
-        var a = DataTokens._tableIdentification;
         if (ellement.tableNumber == 0 && ellement.valueNumber == 3)
         {
             ellement = NoSpaceNextEllement();
             masIdentificator.Add(ellement.valueNumber);
-            //DataTokens.tableIdTypes.Add(ellement.valueNumber, local_type);
             while (ellement.tableNumber == 2 && DataTokens.ContainsTableIdentification(ellement.valueNumber))
             {
                 ellement = NoSpaceNextEllement();
@@ -128,7 +123,6 @@ public class SyntacticAnalyzer
                 {
                     ellement = NoSpaceNextEllement();
                     masIdentificator.Add(ellement.valueNumber);
-                    //DataTokens.tableIdTypes.Add(ellement.valueNumber, local_type);
                     if (DataTokens.ContainsTableIdentification(ellement.valueNumber))
                         ellement = NoSpaceNextEllement();
                     else

@@ -23,38 +23,41 @@ public class LexicalAnalyzer
 
     private void Analyzer(string path)
     {
-        try
-        {
-            using (_streamReader = File.OpenText(path))
-            {
-                while (_streamReader.Peek() != -1)
-                {
+        try {
+            using (_streamReader = File.OpenText(path)) {
+                while (_streamReader.Peek() != -1) {
                     char CH = (char)_streamReader.Read();
-
-                    if (DataTokens.ContainsLetter(ref CH))
-                    {
+                    if (DataTokens.ContainsLetter(ref CH)) {
                         _readingWord(ref CH, out string word);
+                        if (_errorAnalysis) 
+                            break;
                         _verificationWord(word);
                     }
-                    if (DataTokens.ContainsNumber(ref CH) || CH == '.')
-                    {
+                    if (DataTokens.ContainsNumber(ref CH) || CH == '.') {
                         _readingNumber(ref CH, out string word);
+                        if (_errorAnalysis) 
+                            break;
                         AddNumber(_verificationNumber(word));
                     }
-                    if (DataTokens.ContainsSymbol(ref CH))
-                    {
+                    if (DataTokens.ContainsSymbol(ref CH)) {
                         _readingSymbol(ref CH, out string word);
+                        if (_errorAnalysis) 
+                            break;
                         _verificationSymbol(word);
                     }
-
-                    if (_endAnalysis)
-                    {
+                    if (_errorAnalysis) 
+                        break;
+                    if (_endAnalysis) {
                         _errorMessage.Add("Конец лексического анализа: Ошибок не обнаружено.");
                         break;
-                    }
-
-                }
-            }
+                    } 
+                } 
+                if (!_endAnalysis && !_errorAnalysis)
+                {
+                    _errorAnalysis = true;
+                    _errorMessage.Add("Конец лексического анализа: Отсутствие ключевого слова окончания программы \"end\"");
+                } 
+            } 
         }
         catch (Exception e)
         {
@@ -204,7 +207,6 @@ public class LexicalAnalyzer
     
     private void AddNumber(string num) {
         int index = DataTokens.GetIndexTableNumbers(num);
-        var a = DataTokens._tableNumbers;
         if (DataTokens.tableNumberTypes.ContainsKey(index))
             DataTokens.tableNumberTypes[index] = typeOfNumber;
         else
@@ -430,7 +432,6 @@ public class LexicalAnalyzer
                         _errorMessage.Add("Ошибка: неверно написан комментарий");
                     }
                 }
-
                 break;
         }
     }

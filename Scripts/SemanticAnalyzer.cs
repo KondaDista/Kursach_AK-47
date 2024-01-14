@@ -100,19 +100,6 @@ namespace Kursach_AK_47
             }
         }
 
-        private bool DefineExpressionsType(String expression) 
-        {
-            List<String> ellements = new (expression.Replace("][", "];[").Split(';'));
-            Iterator iterator = new Iterator(ellements);
-            int type = Expression(iterator);
-            if (!PutExpression(expression, type))
-            {
-                _errorMessage.Add($"Ошибка семантического анализатора. Типы данных выражений различны ({type})");
-                return false;
-            }
-            return true;
-        }
-
         private int Expression(Iterator iterator) // проверка выражения
         {
             int type;
@@ -226,6 +213,19 @@ namespace Kursach_AK_47
             else
                 DataTokens.tableExpressionTypes.Add(exp, type);
 
+            return true;
+        }
+        
+        private bool DefineExpressionsType(String expression) 
+        {
+            List<String> ellements = new (expression.Replace("][", "];[").Split(';'));
+            Iterator iterator = new Iterator(ellements);
+            int type = Expression(iterator);
+            if (!PutExpression(expression, type))
+            {
+                _errorMessage.Add($"Ошибка семантического анализатора. Типы данных выражений различны ({type})");
+                return false;
+            }
             return true;
         }
         

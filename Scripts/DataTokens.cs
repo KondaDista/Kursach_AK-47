@@ -94,7 +94,6 @@ namespace Kursach_AK_47
             { "output", 19 }
         };
 
-
         private static Dictionary<string, int> _tableLimiters = new() //1
         {
             { "!=", 1 },
@@ -122,9 +121,9 @@ namespace Kursach_AK_47
             { " ", 23 }
         };
         
-        public static Dictionary<int, string> _tableIdentification = new(); //2
+        private static Dictionary<int, string> _tableIdentification = new(); //2
         
-        public static Dictionary<int, string> _tableNumbers = new(); //3
+        private static Dictionary<int, string> _tableNumbers = new(); //3
         
         public static List<string> tableExpression = new();
         public static List<string> tableAssigment = new();
@@ -132,7 +131,7 @@ namespace Kursach_AK_47
         public static Dictionary<string, int> tableExpressionTypes = new();
         public static Dictionary<int, int> tableNumberTypes = new();
         public static Dictionary<int, int> tableIdTypes = new();
-
+        
         public static DataTable TableServiceWords()
         {
             DataTable table = new DataTable();
@@ -336,6 +335,17 @@ namespace Kursach_AK_47
             if (_numberSystems.Contains(CH))
                 return true;
             return false;
+        }
+
+        public static void ClearAllTables()
+        {
+            _tableIdentification.Clear();
+            _tableNumbers.Clear();
+            tableExpression.Clear();
+            tableAssigment.Clear();
+            tableExpressionTypes.Clear();
+            tableNumberTypes.Clear();
+            tableIdTypes.Clear();
         }
     }
 }

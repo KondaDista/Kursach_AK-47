@@ -46,17 +46,19 @@ namespace Kursach_AK_47
             textBox9.Clear();
             listBox1.Items.Clear();
 
+            DataTokens.ClearAllTables();
+
             if (path != "")
             {
                 dataGridView1.DataSource = DataTokens.TableServiceWords();
                 dataGridView2.DataSource = DataTokens.TableLimiters();
                 
                 LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(path);
+                
                 foreach (string str in lexicalAnalyzer.GetErrorMessage())
                 {
                     textBox9.Text += str + "\r\n";
                 }
-                
                 
                 if (!lexicalAnalyzer.GetErrors())
                 {
