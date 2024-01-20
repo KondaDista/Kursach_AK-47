@@ -305,10 +305,16 @@ public class LexicalAnalyzer
         int expSymbol = 0;
         int tokenSymbol = 0;
         int dotSymbol = 0;
+        int Index = 0;
         foreach (char ch in word)
         {
             if (!DataTokens.ContainsExp(ch))
                 return false;
+            if (ch is 'E' or 'e' && dotSymbol == 1 && word[Index - 1] == '.')
+            {
+                _errorMessage.Add($"Ошибка: в числе с экспонентой после '.' ожидается дробная часть");
+                return false;
+            }
             if (ch is 'E' or 'e' && ch == word[word.Length - 1])
                 return false;
             if (ch is 'E' or 'e')
@@ -319,6 +325,7 @@ public class LexicalAnalyzer
                 dotSymbol++;
             if (tokenSymbol > 1 || expSymbol > 1 || dotSymbol > 1)
                 return false;
+            Index++;
         }
         return true;
     }
